@@ -29,3 +29,27 @@
 .post__avatar{
     margin-right: 10px;
 }
+
+.post__comment{
+    font-weight: normal;
+    padding-left:20px;
+}
+
+.post__commentSection_comments{
+    margin-bottom: 10px;
+}
+
+.post__commentSection_input{
+    display: flex;
+    justify-content: space-between;
+}
+
+.post__commentSection_input_input{
+    width: 93%;
+    margin: 5px;
+    border-style: none;
+}
+
+.post__commentSection_input_input:focus{
+    outline: none;
+}

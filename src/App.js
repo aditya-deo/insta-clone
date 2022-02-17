@@ -13,6 +13,8 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import ImageUpload from "./ImageUpload";
+import { updateProfile } from "firebase/auth";
+
 
 const style = {
   position: "absolute",
@@ -34,13 +36,24 @@ function App() {
   const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
   const [openSignIn, setOpenSignIn] = useState(false);
-
   //TBH I don't really understand this useEffect, I have copied code from the latest documentation (as of 15 feb 2022)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
       if (authUser) {
         // User has logged in
         // console.log(authUser);
+        // console.log("authUser : ", authUser);
+        updateProfile(authUser, {
+          displayName: username
+        }).then(() => {
+          setUser(authUser);
+          // Profile updated!
+          // ...
+        }).catch((error) => {
+          // An error occurred
+          console.log(error);
+          // ...
+        });
         setUser(authUser);
       } else {
         // User has logged out
@@ -71,8 +84,10 @@ function App() {
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         console.log(userCredential);
+        localStorage.setItem("username", username);
+        // setUser(userCredential);
         setOpen(false);
-        return (userCredential.user.displayName = username);
+        // return (userCredential.user.displayName = username);
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -87,7 +102,11 @@ function App() {
       .then((userCredential) => {
         // Signed in
         // const user = userCredential.user;
+        localStorage.setItem("username", username);
+        // setUser(userCredential);
         setOpenSignIn(false);
+        // return (userCredential.user.displayName = username);
+        
         // ...
       })
       .catch((error) => {
@@ -207,6 +226,7 @@ function App() {
         {user ? (
           <Button
             onClick={() => {
+              localStorage.removeItem("username");
               auth.signOut();
             }}
           >
@@ -238,6 +258,7 @@ function App() {
           return (
             <Post
               key={id}
+              postID = {id}
               imageUrl={post.imageUrl}
               username={post.username}
               caption={post.caption}
@@ -247,9 +268,9 @@ function App() {
       </div>
 
       {user ? (
-        <ImageUpload username={username} />
+        <ImageUpload username={localStorage.getItem("username")} />
       ) : (
-        <h3>You need to login to upload pictures.</h3>
+        <h3 style={{margin:"20px"}}>You need to login to upload pictures.</h3>
       )}
     </div>
   );

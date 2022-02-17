@@ -9,7 +9,6 @@ import "./ImageUpload.css";
 function ImageUpload(props) {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
-  const [progress, setProgress] = useState(0);
 
 
   const handleChange = (e) => {
@@ -29,7 +28,8 @@ function ImageUpload(props) {
                 username: props.username,
                 caption: caption,
                 imageUrl: imageUrl,
-                timeStamp : serverTimestamp()
+                timeStamp : serverTimestamp(), 
+                // comments:[]
               })
               alert("Image has been uploaded!");  
               setCaption("");
