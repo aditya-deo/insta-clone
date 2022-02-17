@@ -9,7 +9,7 @@ function Post(props) {
         <Avatar
           className="post__avatar"
           alt="AdityaDeo"
-          src="https://wallpapercave.com/wp/wp8721965.jpg"  
+          src=""  
         />
       <h3>{props.username}</h3>
     </div>
