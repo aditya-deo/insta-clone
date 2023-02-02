@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import Button from "@mui/material/Button";
-import { storage, db } from "./firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage, db, realtimeDatabase } from "./firebase";
+import {
+  ref as ref_storage,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 import { serverTimestamp } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
+import { ref as ref_database, set } from "firebase/database";
 import "./ImageUpload.css";
 import pixels from "image-pixels";
 // import getPixels from "get-pixels";
@@ -15,7 +20,7 @@ const convertToGrayScale = async (rgbaArr) => {
   const b = rgbaArr.slice(2 * channelSize, 3 * channelSize);
   const gs = [];
   for (var i = 0; i < channelSize; i++) {
-    gs.push(0.299 * r[i] + 0.587 * g[i] + 0.114 * b[i]);
+    gs.push(Math.round(0.299 * r[i] + 0.587 * g[i] + 0.114 * b[i]));
   }
   return gs;
 };
@@ -23,6 +28,7 @@ const convertToGrayScale = async (rgbaArr) => {
 function ImageUpload(props) {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
+  const [grayscaleArray, setGrayscaleArray] = useState([]);
 
   const handleChange = (e) => {
     // var url = URL.createObjectURL(e.target.files[0]);
@@ -30,26 +36,16 @@ function ImageUpload(props) {
       console.log(a.data);
       convertToGrayScale(a.data).then((gs) => {
         console.log(gs);
+        setGrayscaleArray(gs);
       });
     });
-
-    //BAD CODE
-    // getPixels(url, (err, pixels) => {
-    //   if (err) {
-    //     console.log("Bad image path");
-    //     return;
-    //   }
-    //   console.log("got pixels", pixels.shape.slice());
-    // });
-    //BAD CODE ENDS
-
     if (e.target.files[0]) {
       setImage(e.target.files[0]);
     }
   };
 
   const handleUpload = () => {
-    const imageRef = ref(storage, `images/${image.name}`);
+    const imageRef = ref_storage(storage, `images/${image.name}`);
     uploadBytes(imageRef, image).then((snapshot) => {
       getDownloadURL(imageRef).then((url) => {
         const imageUrl = url;
@@ -64,6 +60,23 @@ function ImageUpload(props) {
         setCaption("");
         setImage(null);
       });
+    });
+
+    //postID generation formula : username + stringified date-time of upload
+    const username = localStorage.getItem("username");
+    const postID = username + Date.now().toString();
+    const timeStamp = Date.now();
+    set(ref_database(realtimeDatabase, "posts/" + postID), {
+      username: username,
+      postID: postID,
+      grayScaleImage: grayscaleArray,
+      caption: caption,
+      timeStamp: timeStamp,
+    }).then(() => {
+      alert("Grayscale img has been uploaded");
+      setCaption("");
+      setGrayscaleArray([]);
+      setImage(null);
     });
   };
 
